@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sabith Notes</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    padding:30px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+.header{
+    text-align:center;
+    color:white;
+    margin-bottom:25px;
+}
+
+.header h1{
+    font-size:3rem;
+}
+
+.header p{
+    opacity:0.9;
+}
+
+.card{
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(15px);
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.2);
+}
+
+input, textarea{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    margin-bottom:15px;
+    font-size:16px;
+    outline:none;
+}
+
+textarea{
+    resize:none;
+}
+
+.btn{
+    background:#00c896;
+    color:white;
+    border:none;
+    padding:14px 22px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:16px;
+    transition:0.3s;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+}
+
+.notes-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:20px;
+    margin-top:25px;
+}
+
+.note{
+    background:white;
+    border-radius:16px;
+    padding:18px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.15);
+    animation:fadeIn .3s ease;
+}
+
+.note h3{
+    color:#333;
+    margin-bottom:10px;
+}
+
+.note p{
+    color:#666;
+    word-wrap:break-word;
+}
+
+.actions{
+    margin-top:15px;
+    display:flex;
+    gap:10px;
+}
+
+.edit{
+    background:#3498db;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.delete{
+    background:#e74c3c;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+@keyframes fadeIn{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>📝 Sabith Notes</h1>
+        <p>Create, save and organize your notes beautifully</p>
+    </div>
+
+    <div class="card">
+
+        <input type="text" id="search" placeholder="🔍 Search notes">
+
+        <input type="text" id="title" placeholder="Note Title">
+
+        <textarea id="content" rows="5" placeholder="Write your note here..."></textarea>
+
+        <button class="btn" onclick="saveNote()">Save Note</button>
+
+    </div>
+
+    <div class="notes-grid" id="notesContainer"></div>
+
+</div>
+
+<script>
+let notes = JSON.parse(localStorage.getItem("sabithNotes")) || [];
+let editIndex = -1;
+
+function saveStorage(){
+    localStorage.setItem("sabithNotes", JSON.stringify(notes));
+}
+
+function renderNotes(filter=""){
+    const container = document.getElementById("notesContainer");
+    container.innerHTML = "";
+
+    notes.forEach((note,index)=>{
+
+        if(
+            note.title.toLowerCase().includes(filter.toLowerCase()) ||
+            note.content.toLowerCase().includes(filter.toLowerCase())
+        ){
+
+            container.innerHTML += `
+                <div class="note">
+                    <h3>${note.title}</h3>
+                    <p>${note.content}</p>
+
+                    <div class="actions">
+                        <button class="edit" onclick="editNote(${index})">✏️ Edit</button>
+                        <button class="delete" onclick="deleteNote(${index})">🗑 Delete</button>
+                    </div>
+                </div>
+            `;
+        }
+    });
+}
+
+function saveNote(){
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+
+    if(!title || !content){
+        alert("Please fill all fields");
+        return;
+    }
+
+    if(editIndex === -1){
+        notes.push({title,content});
+    }else{
+        notes[editIndex] = {title,content};
+        editIndex = -1;
+    }
+
+    saveStorage();
+
+    document.getElementById("title").value="";
+    document.getElementById("content").value="";
+
+    renderNotes();
+}
+
+function deleteNote(index){
+    if(confirm("Delete this note?")){
+        notes.splice(index,1);
+        saveStorage();
+        renderNotes();
+    }
+}
+
+function editNote(index){
+    document.getElementById("title").value = notes[index].title;
+    document.getElementById("content").value = notes[index].content;
+    editIndex = index;
+}
+
+document.getElementById("search").addEventListener("input",function(){
+    renderNotes(this.value);
+});
+
+renderNotes();
+</script>
+
+</body>
+</html>
